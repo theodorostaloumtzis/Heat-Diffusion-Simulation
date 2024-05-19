@@ -65,7 +65,6 @@ void writeToFile(double grid[GRID_SIZE][GRID_SIZE]) {
     fclose(file);
 }
 
-
 // Main function
 int main() {
     double grid[GRID_SIZE][GRID_SIZE];
@@ -73,15 +72,13 @@ int main() {
     int t = 0;
 
     start = omp_get_wtime();
-    // Initialize the grid
     initialize(grid);
-    // Update the grid for a number of timesteps
     for (t = 0; t < TIMESTEPS; t++) {
         update(grid);
     }
     end = omp_get_wtime();
     printf("Time taken: %fs\n", end - start);
-    writeToFile(grid);
+    writeToFile(grid, "heatmap_parallel_omp.txt");
 
     return 0;
 }
