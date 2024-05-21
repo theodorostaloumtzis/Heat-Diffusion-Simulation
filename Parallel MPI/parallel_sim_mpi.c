@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         clock_gettime(CLOCK_MONOTONIC, &end);
         double elapsed_time = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
         printf("Time taken: %fs\n", elapsed_time);
-        writeToFile(grid, "heathmap_parallel_mpi.txt");
+        writeToFile(grid, "heatmap_parallel_mpi.txt");
     }
 
     free(grid);
