@@ -31,7 +31,7 @@ This repository implements a parallel simulation of heat diffusion using a hybri
    ```
    Command for the mpi and hybrid code:
    ```bash
-   gcc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
+   mpicc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
    ```
 
    - **Explanation of flags:**
