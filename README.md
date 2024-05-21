@@ -1,8 +1,8 @@
-**Heat-Diffusion-Simulation**
+###Heat-Diffusion-Simulation
 
 This repository implements a parallel simulation of heat diffusion using a hybrid MPI and OpenMP approach. The code leverages the Message Passing Interface (MPI) for communication and memory management between processes, and OpenMP for parallel processing on multi-core processors.
 
-**Getting Started**
+##Getting Started
 
 1. **Prerequisites:**
    - A C compiler (e.g., GCC)
@@ -15,7 +15,7 @@ This repository implements a parallel simulation of heat diffusion using a hybri
    git clone https://github.com/theodorostaloumtzis/Heat-Diffusion-Simulation.git
    ```
 
-**Compiling and Running the Heat Diffusion Simulation**
+##Compiling and Running the Heat Diffusion Simulation
 
 1. **Navigate to the project directory:**
 
@@ -47,7 +47,7 @@ This repository implements a parallel simulation of heat diffusion using a hybri
      - `-np <num_processes>`: Specifies the desired number of MPI processes to use for parallel execution. Replace `<num_processes>` with the desired number.
      - `./heat_diffusion`: The compiled executable file.
 
-**Additional Notes:**
+##Additional Notes:
 
 * Ensure you have MPI libraries installed and configured on your system for `mpirun` to function correctly.
 * Adjust the compilation flags (`-lm`, `-fopenmp`, `-Wall`) if necessary based on your system and compiler.
@@ -81,28 +81,7 @@ The core functionality resides in the `heat_diffusion.c` file. Here's a breakdow
    - MPI environment is finalized.
    - Memory allocated for the grid is freed.
 
-**Compiling and Running with Different Options**
-
-The provided Makefile (or your build system's equivalent) might require adjustments based on your environment. You can potentially customize the build process to include flags for compiler optimizations or debugging.
-
-**Further Enhancements**
-
-The code provides a solid foundation for parallel heat diffusion simulation. Here are some potential areas for exploration:
-
-* **Performance Optimization:** Explore techniques like communication overlap and data compression to improve communication overhead.
-* **Advanced Algorithms:** Consider implementing faster algorithms for solving the heat diffusion equation, especially for larger or more complex simulations.
-* **Visualization:** Integrate visualization tools to represent the temperature distribution across the grid during the simulation.
-
-**Contributing**
-
-Feel free to submit pull requests if you have improvements, bug fixes, or new features for this codebase. Ensure adherence to coding conventions and proper documentation for your contributions.
-
-**License**
-
-This repository is distributed under the [License Name] license (see LICENSE file for details).
-
 **Author**
 
 Theodoros Taloumtzis ([https://github.com/theodorostaloumtzis](https://github.com/theodorostaloumtzis))
 
-I hope this comprehensive README template proves helpful for your Heat-Diffusion-Simulation repository!
