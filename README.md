@@ -1,8 +1,8 @@
-###Heat-Diffusion-Simulation
+***Heat-Diffusion-Simulation***
 
 This repository implements a parallel simulation of heat diffusion using a hybrid MPI and OpenMP approach. The code leverages the Message Passing Interface (MPI) for communication and memory management between processes, and OpenMP for parallel processing on multi-core processors.
 
-##Getting Started
+**Getting Started**
 
 1. **Prerequisites:**
    - A C compiler (e.g., GCC)
@@ -15,7 +15,7 @@ This repository implements a parallel simulation of heat diffusion using a hybri
    git clone https://github.com/theodorostaloumtzis/Heat-Diffusion-Simulation.git
    ```
 
-##Compiling and Running the Heat Diffusion Simulation
+**Compiling and Running the Heat Diffusion Simulation**
 
 1. **Navigate to the project directory:**
 
@@ -47,7 +47,7 @@ This repository implements a parallel simulation of heat diffusion using a hybri
      - `-np <num_processes>`: Specifies the desired number of MPI processes to use for parallel execution. Replace `<num_processes>` with the desired number.
      - `./heat_diffusion`: The compiled executable file.
 
-##Additional Notes:
+**Additional Notes:**
 
 * Ensure you have MPI libraries installed and configured on your system for `mpirun` to function correctly.
 * Adjust the compilation flags (`-lm`, `-fopenmp`, `-Wall`) if necessary based on your system and compiler.
