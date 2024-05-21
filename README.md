@@ -1,92 +1,91 @@
-***Heat-Diffusion-Simulation***
+###Heat-Diffusion-Simulation (Προσομοίωση διάχυσης θερμότητας)
 
-This repository implements a parallel simulation of heat diffusion using a hybrid MPI and OpenMP approach. The code leverages the Message Passing Interface (MPI) for communication and memory management between processes, and OpenMP for parallel processing on multi-core processors.
+Αυτό το αποθετήριο υλοποιεί μια παράλληλη προσομοίωση διάχυσης θερμότητας χρησιμοποιώντας μια υβριδική προσέγγιση MPI και OpenMP. Ο κώδικας αξιοποιεί το Message Passing Interface (MPI) για επικοινωνία και διαχείριση μνήμης μεταξύ διεργασιών και το OpenMP για παράλληλη επεξεργασία σε επεξεργαστές πολλαπλών πυρήνων.
 
-**Getting Started**
+## Έναρξη
 
-1. **Prerequisites:**
-   - A C compiler (e.g., GCC)
-   - MPI library (e.g., Open MPI) or MPI compiler (mpicc)
-   - OpenMP library (typically included with most modern compilers)
+1. **Προαπαιτήσεις:**
+    - Ένας μεταγλωττιστής C (π.χ., GCC)
+    - Βιβλιοθήκη MPI (π.χ., Open MPI) ή μεταγλωττιστής MPI (mpicc)
+    - Βιβλιοθήκη OpenMP (συνήθως συμπεριλαμβάνεται στους περισσότερους σύγχρονους μεταγλωττιστές)
 
-2. **Clone the repository:**
+2. **Κλωνοποίηση του αποθετηρίου:**
 
-   ```bash
-   git clone https://github.com/theodorostaloumtzis/Heat-Diffusion-Simulation.git
-   ```
+    ```bash
+    git clone https://github.com/theodorostaloumtzis/Heat-Diffusion-Simulation.git
+    ```
 
-**Compiling and Running the Heat Diffusion Simulation**
+## Μεταγλώττιση και Εκτέλεση της Προσομοίωσης Διάχυσης Θερμότητας
 
-1. **Navigate to the project directory:**
+1. **Μετακίνηση στον κατάλογο του έργου:**
 
-   ```bash
-   cd Heat-Diffusion-Simulation
-   ```
+    ```bash
+    cd Heat-Diffusion-Simulation
+    ```
 
-2. **Compile the code:**
+2. **Μεταγλώττιση του κώδικα:**
 
-   Command for the serial and omp code:
-   ```bash
-   gcc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
-   ```
-   Command for the mpi and hybrid code:
-   ```bash
-   mpicc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
-   ```
+    Εντολή για τον σειριακό και τον κώδικα OpenMP:
+    ```bash
+    gcc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
+    ```
+    Εντολή για τον κώδικα MPI και τον υβριδικό κώδικα:
+    ```bash
+    mpicc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
+    ```
 
-   - **Explanation of flags:**
-     - `-o heat_diffusion`: Sets the output executable name to "heat_diffusion".
-     - `heat_diffusion.c`: Specifies the source code file.
-     - `-lm`: Links the standard math library (required for mathematical functions).
-     - `-fopenmp`: Enables OpenMP support for parallel execution.
-     - `-Wall`: Enables compiler warnings (optional, but recommended for code quality).
+    - **Επεξήγηση σημαιών:**
+        - `-o heat_diffusion`: Ορίζει το όνομα του εκτελέσιμου αρχείου εξόδου σε "heat_diffusion".
+        - `heat_diffusion.c`: Καθορίζει το αρχείο του πηγαίου κώδικα.
+        - `-lm`: Συνδέει τη βασική βιβλιοθήκη μαθηματικών (απαιτείται για μαθηματικές συναρτήσεις).
+        - `-fopenmp`: Ενεργοποιεί την υποστήριξη OpenMP για παράλληλη εκτέλεση.
+        - `-Wall`: Ενεργοποιεί τις προειδοποιήσεις του μεταγλωττιστή (προαιρετικό, αλλά συνιστάται για την ποιότητα του κώδικα).
 
-3. **Run the simulation:**
+3. **Εκτέλεση της προσομοίωσης:**
 
-   ```bash
-   mpirun -np <num_processes> ./heat_diffusion
-   ```
+    ```bash
+    mpirun -np <αριθμός_διεργασιών> ./heat_diffusion
+    ```
 
-   - **Explanation:**
-     - `mpirun`: The MPI launcher command.
-     - `-np <num_processes>`: Specifies the desired number of MPI processes to use for parallel execution. Replace `<num_processes>` with the desired number.
-     - `./heat_diffusion`: The compiled executable file.
+    - **Επεξήγηση:**
+        - `mpirun`: Η εντολή εκκίνησης MPI.
+        - `-np <αριθμός_διεργασιών>`: Καθορίζει τον επιθυμητό αριθμό διεργασιών MPI που θα χρησιμοποιηθούν για παράλληλη εκτέλεση. Αντικαταστήστε το `<αριθμός_διεργασιών>` με τον επιθυμητό αριθμό.
+        - `./heat_diffusion`: Το μεταγλωττισμένο εκτελέσιμο αρχείο.
 
-**Additional Notes:**
+## Πρόσθετες Σημειώσεις
 
-* Ensure you have MPI libraries installed and configured on your system for `mpirun` to function correctly.
-* Adjust the compilation flags (`-lm`, `-fopenmp`, `-Wall`) if necessary based on your system and compiler.
-* This approach assumes all necessary header files (e.g., `mpi.h`, `omp.h`) are included in the `heat_diffusion.c` file or are located in standard system directories.
+* Βεβαιωθείτε ότι έχετε εγκαταστήσει και διαμορφώσει τις βιβλιοθήκες MPI στο σύστημά σας για να λειτουργήσει σωστά το `mpirun`.
+* Προσαρμόστε τις σημαίες μεταγλώττισης (`-lm`, `-fopenmp`, `-Wall`) εάν είναι απαραίτητο, ανάλογα με το σύστημα και τον μεταγλωττιστή σας.
+* Αυτή η προσέγγιση προϋποθέτει ότι όλα τα απαραίτητα αρχεία κεφαλίδας (π.χ., `mpi.h`, `omp.h`) περιλαμβάνονται στο αρχείο `heat_diffusion.c` ή βρίσκονται σε τυπικούς καταλόγους συστήματος.
 
-By following these steps, you can compile and run the heat diffusion simulation code without a Makefile. Remember to replace `<num_processes>` with the desired number of MPI processes to leverage parallel processing capabilities.
+Ακολουθώντας αυτά τα βήματα, μπορείτε να μεταγλωττίσετε και να εκτελέσετε τον κώδικα προσομοίωσης διάχυσης θερμότητας χωρίς αρχείο Makefile. Θυμηθείτε να αντικαταστήσετε το `<αριθμός_διεργασιών>` με τον επιθυμητό αριθμό διεργασιών MPI για να αξιοποιήσετε τις δυνατότητες παράλληλης επεξεργασίας.
 
-**Understanding the Code**
+## Κατανόηση του Κώδικα
 
-The core functionality resides in the `heat_diffusion.c` file. Here's a breakdown of the key steps:
+Η βασική λειτουργικότητα βρίσκεται στο αρχείο `heat_diffusion.c`. Ακολουθεί μια ανάλυση των βασικών βημάτων:
 
-* **Initialization:**
-   - MPI environment is initialized.
-   - Grid dimensions (size) and timesteps for the simulation are defined.
-   - Memory is allocated for the temperature grid.
-   - The grid is initialized with appropriate temperature values (optional).
+* **Αρχικοποίηση:**
+    - Αρχικοποιείται το περιβάλλον MPI.
+    - Ορίζονται οι διαστάσεις του πλέγματος (μέγεθος) και τα χρονικά βήματα για την προσομοίωση.
+    - Διατίθεται μνήμη για το πλέγμα θερμοκρασίας.
+    - Το πλέγμα αρχικοποιείται με κατάλληλες τιμές θερμοκρασίας (προαιρετικό).
 
-* **Parallelization:**
-   - The grid is divided into chunks, and each MPI process is assigned a chunk.
-   - OpenMP threads are used to parallelize calculations within each process's chunk.
+* **Παράλληλοποίηση:**
+    - Το πλέγμα χωρίζεται σε τμήματα και σε κάθε διαδικασία MPI ανατίθεται ένα τμήμα.
+    - Τα νήματα OpenMP χρησιμοποιούνται για τον παράλληλο υπολογισμό μέσα σε κάθε τμήμα μιας διαδικασίας.
 
-* **Heat Diffusion Simulation:**
-   - The main simulation loop iterates over timesteps.
-   - Within each timestep:
-     - The `update` function (not explicitly shown) calculates new temperature values for each grid point based on its neighbors and the heat diffusion equation.
-     - MPI processes exchange boundary data with their neighbors to ensure accurate calculations at the edges of each process's chunk.
-     - `MPI_Gather` is used to collect temperature data from all processes onto the root process (usually process 0).
-     - The root process broadcasts the complete, updated temperature grid back to all processes.
+* **Προσομοίωση Διάχυσης Θερμότητας:**
+    - Ο κύκλος του κύριου προγράμματος επαναλαμβάνεται για τα χρονικά βήματα.
+    - Μέσα σε κάθε χρονικό βήμα:
+        - Η συνάρτηση `update` (δεν εμφανίζεται 詳しく (kuwashiku) - λεπτομερώς) υπολογίζει νέες τιμές θερμοκρασίας για κάθε σημείο του πλέγματος με βάση τους γείτονές του και την εξίσωση διάχυσης θερμότητας.
+        - Οι διαδικασίες MPI ανταλλάσσουν δεδομένα ορίων με τους γείτονές τους για να διασφαλίσουν ακριβείς υπολογισμούς στις άκρες κάθε τμήματος μιας διαδικασίας.
+        - Χρησιμοποιείται η `MPI_Gather` για τη συλλογή δεδομένων θερμοκρασίας από όλες τις διαδικασίες στη διαδικασία root (συνήθως διαδικασία 0).
+        - Η διαδικασία root μεταδίδει το πλήρες, ενημερωμένο πλέγμα θερμοκρασίας σε όλες τις διαδικασίες.
 
-* **Finalization:**
-   - MPI environment is finalized.
-   - Memory allocated for the grid is freed.
+* **Ολοκλήρωση:**
+    - Ολοκληρώνεται το περιβάλλον MPI.
+    - Απελευθερώνεται η μνήμη που έχει διατεθεί για το πλέγμα.
 
-**Author**
+## Συγγραφέας
 
 Theodoros Taloumtzis ([https://github.com/theodorostaloumtzis](https://github.com/theodorostaloumtzis))
-
