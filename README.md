@@ -6,7 +6,7 @@ This repository implements a parallel simulation of heat diffusion using a hybri
 
 1. **Prerequisites:**
    - A C compiler (e.g., GCC)
-   - MPI library (e.g., Open MPI)
+   - MPI library (e.g., Open MPI) or MPI compiler (mpicc)
    - OpenMP library (typically included with most modern compilers)
 
 2. **Clone the repository:**
@@ -25,6 +25,11 @@ This repository implements a parallel simulation of heat diffusion using a hybri
 
 2. **Compile the code:**
 
+   Command for the serial and omp code:
+   ```bash
+   gcc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
+   ```
+   Command for the mpi and hybrid code:
    ```bash
    gcc -o heat_diffusion heat_diffusion.c -lm -fopenmp -Wall
    ```
