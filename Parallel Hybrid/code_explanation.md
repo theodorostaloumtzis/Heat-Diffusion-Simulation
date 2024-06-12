@@ -1,10 +1,8 @@
-Absolutely! Here's the explanation of the code with MPI and OpenMP in the style of the first code explanation:
+## Υβριδική Παράλληλη Προσομοίωση Διάχυσης Θερμότητας Χρησιμοποιώντας MPI και OpenMP
 
-## Παράλληλη Προσομοίωση Διάχυσης Θερμότητας με Χρήση MPI και OpenMP
+Αυτό το έργο υλοποιεί μια υβριδική παράλληλη προσομοίωση διάχυσης θερμότητας χρησιμοποιώντας MPI (Message Passing Interface) και OpenMP (Open Multi-Processing). Παρακάτω εξηγείται πώς λειτουργεί ο κώδικας και τα κύρια χαρακτηριστικά του.
 
-Αυτός ο κώδικας παρουσιάζει μια υβριδική προσέγγιση για την παράλληλη προσομοίωση διάχυσης θερμότητας. Συνδυάζει τη διαχείριση μνήμης και επικοινωνίας μεταξύ διαδικασιών της βιβλιοθήκης MPI (Message Passing Interface) με την παράλληλη επεξεργασία πολλαπλών πυρήνων που προσφέρει το OpenMP.
-
-**Αρχικοποίηση Περιβάλλοντος MPI και OpenMP**
+### Σταθερές και Προετοιμασία
 
 ```c
 #include <stdio.h>
@@ -19,117 +17,158 @@ Absolutely! Here's the explanation of the code with MPI and OpenMP in the style 
 #define DT 0.1
 #define DX 1.0
 #define ALPHA 0.01
+```
 
-// ... συνάρτηση initialize (δεν εμφανίζεται)
-// ... συνάρτηση update (δεν εμφανίζεται)
-// ... συνάρτηση writeToFile (δεν εμφανίζεται)
+Οι σταθερές και οι βιβλιοθήκες που περιλαμβάνονται ορίζονται εδώ. Χρησιμοποιούμε το `mpi.h` για τις λειτουργίες του MPI και το `omp.h` για την αξιοποίηση του OpenMP για παραλληλοποίηση σε επίπεδο νήματος.
 
+### Αρχικοποίηση του Πλέγματος
+
+```c
+void initialize(double *grid, int rank, int chunk_size, int remainder, int size) {
+    int i, j, start_row, end_row;
+
+    if (remainder != 0 && rank == size - 1) {
+        chunk_size += remainder; // Προσαρμογή του chunk για την τελευταία διεργασία
+    }
+
+    start_row = rank * chunk_size;
+    end_row = start_row + chunk_size;
+
+    #pragma omp parallel for private(i, j)
+    for (i = start_row; i < end_row; i++) {
+        for (j = 0; j < GRID_SIZE; j++) {
+            if (i >= GRID_SIZE / 2 - 24 && i < GRID_SIZE / 2 + 24 && j >= GRID_SIZE / 2 - 24 && j < GRID_SIZE / 2 + 24) {
+                grid[i * GRID_SIZE + j] = 100.0;
+            } 
+            else {
+                grid[i * GRID_SIZE + j] = 0.0;
+            }
+        }
+    }
+}
+```
+
+Η συνάρτηση `initialize` αρχικοποιεί το πλέγμα. Το πλέγμα διαιρείται μεταξύ των διεργασιών, με κάθε διεργασία να είναι υπεύθυνη για την αρχικοποίηση ενός τμήματος. Η χρήση του OpenMP (#pragma omp parallel for) επιτρέπει την παραλληλοποίηση της αρχικοποίησης σε επίπεδο νήματος.
+
+### Ενημέρωση του Πλέγματος
+
+```c
+void update(double *grid, double *temp, int rank, int size, int chunk_size, int remainder) {
+    int i, j, start_row, end_row;
+    
+    if (remainder != 0 && rank == size - 1) {
+        chunk_size += remainder; // Προσαρμογή του chunk για την τελευταία διεργασία
+    }
+
+    start_row = rank * chunk_size;
+    end_row = start_row + chunk_size;
+    #pragma omp parallel for private(i, j)
+    for (i = start_row; i < end_row; i++) {
+        for (j = 0; j < GRID_SIZE; j++) {
+            double up = (i > 0) ? grid[(i-1) * GRID_SIZE + j] : 0.0;
+            double down = (i < GRID_SIZE-1) ? grid[(i+1) * GRID_SIZE + j] : 0.0;
+            double left = (j > 0) ? grid[i * GRID_SIZE + j-1] : 0.0;
+            double right = (j < GRID_SIZE-1) ? grid[i * GRID_SIZE + j+1] : 0.0;
+            temp[i * GRID_SIZE + j] = grid[i * GRID_SIZE + j] + ALPHA * DT / (DX * DX) * (up + down + left + right - 4 * grid[i * GRID_SIZE + j]);
+        }
+    }
+}
+```
+
+Η συνάρτηση `update` υπολογίζει τη νέα κατάσταση του πλέγματος χρησιμοποιώντας τη μέθοδο πεπερασμένων διαφορών. Η χρήση του OpenMP επιτρέπει την παραλληλοποίηση του υπολογισμού σε επίπεδο νήματος.
+
+### Εγγραφή Αποτελεσμάτων σε Αρχείο
+
+```c
+void writeToFile(double *grid, char *filename) {
+    FILE *file = fopen(filename, "w");
+    int i, j;
+    for (i = 0; i < GRID_SIZE; i++) {
+        for (j = 0; j < GRID_SIZE; j++) {
+            fprintf(file, "%f ", grid[i * GRID_SIZE + j]);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
+}
+```
+
+Η συνάρτηση `writeToFile` γράφει την τελική κατάσταση του πλέγματος σε ένα αρχείο για ανάλυση και οπτικοποίηση.
+
+### Κύρια Συνάρτηση
+
+```c
 int main(int argc, char *argv[]) {
-  int rank, size;
-  double *grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
-  double *temp_grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
-  struct timespec start, end;
+    int rank, size;
+    double *grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
+    double *temp_grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
+    struct timespec start, end;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
 
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int chunk_size = GRID_SIZE / size;
+    int remainder = GRID_SIZE % size;
 
-  int chunk_size = GRID_SIZE / size;
-  int remainder = GRID_SIZE % size;
-
-  if (rank == 0) {
-    clock_gettime(CLOCK_MONOTONIC, &start);
-  }
-
-  initialize(grid, rank, chunk_size, remainder, size);
-```
-
-Η αρχή του κώδικα μοιάζει αρκετά με την προηγούμενη υλοποίηση MPI που είδαμε. Πραγματοποιεί την αρχικοποίηση του περιβάλλοντος MPI, ανακτά τον αριθμό των διαδικασιών (`size`) και τον μοναδικό αναγνωριστικό (`rank`) της τρέχουσας διαδικασίας. Ο πίνακας `grid` αποθηκεύει τις τιμές θερμοκρασίας του πλέγματος και χωρίζεται σε τμήματα (`chunk_size`) για κάθε διαδικασία. Οι συναρτήσεις `initialize` και `update` (δεν εμφανίζονται εδώ), όπως και στον προηγούμενο κώδικα, αναλαμβάνουν την αρχικοποίηση του πλέγματος και τον υπολογισμό των νέων τιμών θερμοκρασίας αντίστοιχα.
-
-**Παράλληλος Υπολογισμός με OpenMP**
-
-```c
-  #pragma omp parallel for private(i, j)
-  for (i = start_row; i < end_row; i++) {
-    for (j = 0; j < GRID_SIZE; j++) {
-      // Υπολογισμός νέων τιμών θερμοκρασίας για το τμήμα της τρέχουσας διαδικασίας
-      // ... (περιεχόμενο συνάρτησης update)
-    }
-  }
-```
-
-Η εντολή `#pragma omp parallel for` ενεργοποιεί τον παράλληλο υπολογισμό με OpenMP. Δημιουργεί threads OpenMP που θα εκτελέσουν τον βρόχο `for` ταυτόχρονα σε διαφορετικούς πυρήνες επεξεργαστή. Ο εσωτερικός βρόχος υπολογίζει τις νέες τιμές θερμοκρασίας για κάθε σημείο πλέγματος που ανατέθηκε στην τρέχουσα διαδικασία. Αυτός ο υπολογισμός βασίζεται στην αρχική τιμή θερμοκρασίας και τις τιμές των γειτονικών του σημείων, όπως περιγράφεται στη συνάρτηση `update` (η οποία δεν εμφανίζεται εδώ).
-
-**Επικοινωνία και Συγχρονισμός Διαδικασιών MPI**
-
-```c
-  MPI_Request send_req, recv_req;
-  int t;
-  for (t = 0; t < TIMESTEPS; t++) {
-    update(grid, temp_grid, rank, size, chunk_size, remainder);
-
-    // Ανταλλαγή συνοριακών γραμμών με γειτονικές διαδικασίες
-    if (rank > 0) {
-      MPI_Isend(temp_grid + rank * chunk_size * GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &send_req);
-      MPI_Irecv(temp_grid + (rank-1) * chunk_size * GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &recv_req);
-      MPI_Wait(&send_req, MPI_STATUS_IGNORE);
-      MPI_Wait(&recv_req, MPI_STATUS_IGNORE);
-    }
-    if (rank < size-1) {
-      MPI_Isend(temp_grid + (rank+1) * chunk_size * GRID_SIZE - GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &send_req);
-      MPI_Irecv(temp_grid + (rank+1) * chunk_size * GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &recv_req);
-      MPI_Wait(&send_req, MPI_STATUS_IGNORE);
-      MPI_Wait(&recv_req, MPI_STATUS_IGNORE);
+    if (rank == 0) {
+        clock_gettime(CLOCK_MONOTONIC, &start);
     }
 
-    // Σύγκεντρωση ενημερωμένων τμημάτων πλέγματος στη διαδικασία συντονισμού
-    MPI_Gather(temp_grid + rank * chunk_size * GRID_SIZE, chunk_size * GRID_SIZE, MPI_DOUBLE, grid, chunk_size * GRID_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
- 
-    // Διασπορά του πλήρους ενημερωμένου πλέγματος σε όλες τις διαδικασίες
-    MPI_Bcast(grid, GRID_SIZE * GRID_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  }
+    initialize(grid, rank, chunk_size, remainder, size);
+
+    MPI_Request send_req, recv_req;
+    int t;
+    for (t = 0; t < TIMESTEPS; t++) {
+        update(grid, temp_grid, rank, size, chunk_size, remainder);
+
+        // Ανταλλαγή ορίων γραμμών με γείτονες
+        if (rank > 0) {
+            MPI_Isend(temp_grid + rank * chunk_size * GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &send_req);
+            MPI_Irecv(temp_grid + (rank-1) * chunk_size * GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &recv_req);
+            MPI_Wait(&send_req, MPI_STATUS_IGNORE);
+            MPI_Wait(&recv_req, MPI_STATUS_IGNORE);
+        }
+        if (rank < size-1) {
+            MPI_Isend(temp_grid + (rank+1) * chunk_size * GRID_SIZE - GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &send_req);
+            MPI_Irecv(temp_grid + (rank+1) * chunk_size * GRID_SIZE, GRID_SIZE, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &recv_req);
+            MPI_Wait(&send_req, MPI_STATUS_IGNORE);
+            MPI_Wait(&recv_req, MPI_STATUS_IGNORE);
+        }
+
+        // Συγκέντρωση ενημερωμένων πλεγμάτων
+        MPI_Gather(temp_grid + rank * chunk_size * GRID_SIZE, chunk_size * GRID_SIZE, MPI_DOUBLE, grid, chunk_size * GRID_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        
+        // Μετάδοση του ενημερωμένου πλέγματος σε όλες τις διεργασίες
+        MPI_Bcast(grid, GRID_SIZE * GRID_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    }
+
+    if (rank == 0) {
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        double elapsed_time = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
+        printf("Χρόνος που χρειάστηκε: %fs\n", elapsed_time);
+        writeToFile(grid, "heatmap_parallel_hybrid.txt");
+    }
+
+    free(grid);
+    free(temp_grid);
+    MPI_Finalize();
+    return 0;
+}
 ```
 
-Ο κύκλος `for` εκτελείται για `TIMESTEPS` διαδοχές, που αντιπροσωπεύουν τα χρονικά βήματα της προσομοίωσης. Σε κάθε βήμα:
+### Χαρακτηριστικά
 
-1. Η συνάρτηση `update` (δεν εμφανίστηκε προηγουμένως) χρησιμοποιεί τις τρέχουσες τιμές θερμοκρασίας στον πίνακα `grid` για να υπολογίσει τις νέες τιμές και να τις αποθηκεύσει στον πίνακα `temp_grid`. Η παράλληλη εκτέλεση με OpenMP επιταχύνει αυτή την ενημέρωση.
+1. **Υβριδική Παραλληλοποίηση**: Ο κώδικας χρησιμοποιεί το MPI για παραλληλοποίηση σε επίπεδο διεργασίας και το OpenMP για παραλληλοποίηση σε επίπεδο νήματος.
+2. **Αρχικοποίηση και Ενημέρωση**: Οι λειτουργίες αρχικοποίησης και ενημέρωσης είναι παραλληλοποιημένες χρησιμοποιώντας το OpenMP για να επιταχυνθεί η εκτέλεση.
+3. **Ανταλλαγή Συνόρων**: Οι διεργασίες ανταλλάσσουν τις γραμμές συνόρων τους με τις γειτονικές διεργασίες χρησιμοποιώντας μη-μπλοκάρισμα MPI επικοινωνία.
 
-2. **Επικοινωνία και Συγχρονισμός**:
+### Βελτιώσεις
 
-   - Οι διαδικασίες ανταλλάσσουν τις συνοριακές γραμμές του πλέγματος με τις γειτονικές τους διαδικασίες, απαραίτητες για τον υπολογισμό των νέων τιμών στα όρια του πλέγματος της κάθε διαδικασίας. 
-     - Η `MPI_Isend` ξεκινά την ασύγχρονη αποστολή της συνοριακής γραμμής στον πίνακα `temp_grid` στη γειτονική διαδικασία με χαμηλότερο `rank`.
-     - Η `MPI_Irecv` ξεκινά την ασύγχρονη λήψη της συνοριακής γραμμής από τη γειτονική διαδικασία με υψηλότερο `rank`.
-     - Η `MPI_Wait` ολοκληρώνει την αποστολή/λήψη δεδομένων και περιμένει να ολοκληρωθούν οι αντίστοιχες ασύγχρονες λειτουργίες.
-   - Η `MPI_Gather` λαμβάνει δεδομένα από όλες τις διαδικασίες και τα συγκεντρώνει σε μια συγκεκριμένη διαδικασία, συνήθως αυτή με `rank 0`. Κάθε διαδικασία στέλνει ένα τμήμα δεδομένων στον πίνακα `sendbuf` και η διαδικασία root λαμβάνει τα συγκεντρωμένα δεδομένα στον πίνακα `recvbuf`.
-   - Η `MPI_Bcast` διασπείρει το πλήρες ενημερωμένο πλέγμα σε όλες τις διαδικασίες, διασφαλίζοντας ότι όλες οι διαδικασίες έχουν τα ίδια δεδομένα για τον επόμενο γύρο υπολογισμών.
+1. **Βελτιστοποίηση Κώδικα**: Εξετάστε τη χρήση πιο εξελιγμένων τεχνικών βελτιστοποίησης για να μειώσετε το κόστος επικοινωνίας.
+2. **Διαφορετικές Προσεγγίσεις Παραλληλοποίησης**: Πειραματιστείτε με άλλες προσεγγίσεις παραλληλοποίησης για να βελτιώσετε την απόδοση σε συγκεκριμένες πλατφόρμες.
 
-3. Μετά την επικοινωνία και τον συγχρονισμό, όλες οι διαδικασίες προχωρούν στον επόμενο γύρο υπολογισμών χρησιμοποιώντας τις νέες τιμές θερμοκρασίας στο πλέγμα τους.
+###  Συμπέρασμα
+Αυτή η υλοποίηση με βάση το MPI και OMP βελτιώνει σημαντικά την απόδοση της προσομοίωσης διάχυσης θερμότητας παραλληλοποιώντας τον υπολογισμό σε πολλαπλές διεργασίες και νήματα. Ωστόσο, περαιτέρω βελτιστοποιήσεις και προηγμένες τεχνικές μπορούν να εφαρμοστούν για ακόμα καλύτερη απόδοση και κλιμάκωση.
 
-
-
-**Πιθανοί Παρα bottlenecks**
-
-* **Επικοινωνία**: Η αποστολή/λήψη δεδομένων μεταξύ των διαδικασιών μπορεί να γίνει σημαντικός παράγοντας που περιορίζει την απόδοση, ειδικά για μεγάλες προσομοιώσεις ή σε συστήματα με υψηλό latency δικτύου.
-* **Ανισομερής κατανομή δεδομένων**:  Αν ο διαχωρισμός του πλέγματος σε chunk δεν είναι ισορροπημένος μεταξύ των διαδικασιών, μπορεί να οδηγήσει σε αναποτελεσματική χρήση των πόρων του υπολογιστικού συστήματος.
-* *## Συμπεράσματα και Βελτιώσεις
-
-Ο κώδικας αυτός παρουσιάζει μια καλή υλοποίηση για την παράλληλη προσομοίωση διάχυσης θερμότητας. Συνδυάζει τα πλεονεκτήματα του MPI και του OpenMP για να επιτύχει υψηλή απόδοση σε συστήματα με πολλούς πυρήνες επεξεργασίας και πολλαπλές διαδικασίες.
-
-**Πλεονεκτήματα:**
-
-* **Κλιμακωτότητα**: Η χρήση του MPI επιτρέπει την κλιμάκωση της προσομοίωσης σε μεγαλύτερα συστήματα προσθέτοντας περισσότερες διαδικασίες.
-* **Παράλληλος Υπολογισμός**: Το OpenMP επιτρέπει τον παράλληλο υπολογισμό των νέων τιμών θερμοκρασίας εντός κάθε διαδικασίας, αξιοποιώντας τους διαθέσιμους πυρήνες επεξεργασίας.
-* **Αποδοτικότητα**: Ο συνδυασμός MPI και OpenMP επιτυγχάνει σημαντική μείωση του χρόνου εκτέλεσης της προσομοίωσης σε σύγκριση με μια σειριακή υλοποίηση.
-
-**Δυνητικές Βελτιώσεις:**
-
-* **Α επικάλυψη επικοινωνίας και υπολογισμού**: Μπορεί να υπάρξει περιθώριο βελτίωσης στην επικάλυψη των λειτουργιών επικοινωνίας MPI (ανταλλαγή συνοριακών γραμμών) με τους υπολογισμούς OpenMP για τις εσωτερικές τιμές πλέγματος. Αυτό θα μπορούσε να μειώσει τον χρόνο αναμονής των διαδικασιών κατά την επικοινωνία.
-* **Συμπίεση δεδομένων**: Αν το μέγεθος του πλέγματος είναι πολύ μεγάλο, η συμπίεση των δεδομένων που αποστέλλονται μεταξύ των διαδικασιών μπορεί να μειώσει το χρόνο επικοινωνίας και να βελτιώσει την απόδοση.
-* **Αλγόριθμοι ταχείας επίλυσης**: Για μεγαλύτερες ή πιο σύνθετες προσομοιώσεις, η εξέταση εναλλακτικών αλγορίθμων ταχείας επίλυσης για την εξίσωση διάχυσης θερμότητας μπορεί να μειώσει περαιτέρω τον χρόνο εκτέλεσης.
-
-Η επιλογή των συγκεκριμένων βελτιώσεων εξαρτάται από το μέγεθος και τη σύνθετητητα της προσομοίωσης, καθώς και από τους διαθέσιμους πόρους του υπολογιστικού συστήματος.
-*Α overhead του OpenMP**:  Το πρόσθετο overhead που εισάγεται από τη διαχείριση των threads OpenMP μπορεί να επηρεάσει την απόδοση, ιδιαίτερα για μικρές προσομοιώσεις ή σε συστήματα με λίγους πυρήνες επεξεργασίας.
-
-**Συμπέρασμα**
-
-Αυτός ο κώδικας επιδεικνύει μια αποτελεσματική υβριδική προσέγγιση για την παράλληλη προσομοίωση διάχυσης θερμότητας. Η χρήση του MPI επιτρέπει τον διαχωρισμό του υπολογιστικού έργου σε πολλές διαδικασίες, οι οποίες επικοινωνούν μεταξύ τους για να ανταλλάξουν δεδομένα στα όρια του πλέγματος. Εντός κάθε διαδικασίας, το OpenMP αξιοποιεί πολλαπλούς πυρήνες επεξεργαστή για να επιταχύνει τον υπολογισμό των νέων τιμών θερμοκρασίας.
