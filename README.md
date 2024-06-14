@@ -18,7 +18,7 @@
 
 ## Αποτέλεσμα Προσομοίωσης
 
-<img src="heatmap_serial.png" alt="heatmap">
+<img src="Serial/heatmap_serial.png" alt="heatmap">
 
 ## Έναρξη
 
