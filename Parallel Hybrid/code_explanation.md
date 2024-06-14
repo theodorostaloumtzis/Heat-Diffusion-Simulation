@@ -1,4 +1,4 @@
-## Υβριδική Παράλληλη Προσομοίωση Διάχυσης Θερμότητας Χρησιμοποιώντας MPI και OpenMP
+### Υβριδική Παράλληλη Προσομοίωση Διάχυσης Θερμότητας Χρησιμοποιώντας MPI και OpenMP
 
 Αυτό το έργο υλοποιεί μια υβριδική παράλληλη προσομοίωση διάχυσης θερμότητας χρησιμοποιώντας MPI (Message Passing Interface) και OpenMP (Open Multi-Processing). Παρακάτω εξηγείται πώς λειτουργεί ο κώδικας και τα κύρια χαρακτηριστικά του.
 
@@ -39,8 +39,7 @@ void initialize(double *grid, int rank, int chunk_size, int remainder, int size)
         for (j = 0; j < GRID_SIZE; j++) {
             if (i >= GRID_SIZE / 2 - 24 && i < GRID_SIZE / 2 + 24 && j >= GRID_SIZE / 2 - 24 && j < GRID_SIZE / 2 + 24) {
                 grid[i * GRID_SIZE + j] = 100.0;
-            } 
-            else {
+            } else {
                 grid[i * GRID_SIZE + j] = 0.0;
             }
         }
@@ -62,6 +61,7 @@ void update(double *grid, double *temp, int rank, int size, int chunk_size, int 
 
     start_row = rank * chunk_size;
     end_row = start_row + chunk_size;
+    
     #pragma omp parallel for private(i, j)
     for (i = start_row; i < end_row; i++) {
         for (j = 0; j < GRID_SIZE; j++) {
@@ -100,17 +100,19 @@ void writeToFile(double *grid, char *filename) {
 ```c
 int main(int argc, char *argv[]) {
     int rank, size;
-    double *grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
-    double *temp_grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
+    double *grid, *temp_grid;
     struct timespec start, end;
     
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    
 
     int chunk_size = GRID_SIZE / size;
     int remainder = GRID_SIZE % size;
+
+    // Allocate memory for each process's chunk
+    grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
+    temp_grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
 
     if (rank == 0) {
         clock_gettime(CLOCK_MONOTONIC, &start);
@@ -167,8 +169,10 @@ int main(int argc, char *argv[]) {
 ### Βελτιώσεις
 
 1. **Βελτιστοποίηση Κώδικα**: Εξετάστε τη χρήση πιο εξελιγμένων τεχνικών βελτιστοποίησης για να μειώσετε το κόστος επικοινωνίας.
-2. **Διαφορετικές Προσεγγίσεις Παραλληλοποίησης**: Πειραματιστείτε με άλλες προσεγγίσεις παραλληλοποίησης για να βελτιώσετε την απόδοση σε συγκεκριμένες πλατφόρμες.
+2. **Διαφορετικές Προσεγγίσεις Παραλληλοποίησης**: Πειραματιστείτε με άλλες προσεγγίσεις παρα
+
+λληλοποίησης για να βελτιώσετε την απόδοση σε συγκεκριμένες πλατφόρμες.
 
 ###  Συμπέρασμα
-Αυτή η υλοποίηση με βάση το MPI και OMP βελτιώνει σημαντικά την απόδοση της προσομοίωσης διάχυσης θερμότητας παραλληλοποιώντας τον υπολογισμό σε πολλαπλές διεργασίες και νήματα. Ωστόσο, περαιτέρω βελτιστοποιήσεις και προηγμένες τεχνικές μπορούν να εφαρμοστούν για ακόμα καλύτερη απόδοση και κλιμάκωση.
 
+Αυτή η υλοποίηση με βάση το MPI και OMP βελτιώνει σημαντικά την απόδοση της προσομοίωσης διάχυσης θερμότητας παραλληλοποιώντας τον υπολογισμό σε πολλαπλές διεργασίες και νήματα. Ωστόσο, περαιτέρω βελτιστοποιήσεις και προηγμένες τεχνικές μπορούν να εφαρμοστούν για ακόμα καλύτερη απόδοση και κλιμάκωση.
