@@ -1,7 +1,3 @@
-Absolutely, here's the full revised README file incorporating all the necessary details including MPI compilation with `mpicc` and running with `mpirun`:
-
----
-
 # Heat-Diffusion-Simulation (Προσομοίωση διάχυσης θερμότητας)
 
 Αυτό το αποθετήριο περιλαμβάνει μια προσομοίωση διάχυσης θερμότητας χρησιμοποιώντας δύο διαφορετικές προσεγγίσεις: σειριακή και παράλληλη με OpenMP και MPI. Ο κώδικας εκτελείται σε επεξεργαστές πολλαπλών πυρήνων και διαδικτυακά περιβάλλοντα για ταχύτερους υπολογισμούς.
