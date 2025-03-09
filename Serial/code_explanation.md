@@ -1,8 +1,8 @@
-### Εξήγηση Υλοποίησης
+### Implementation Explanation
 
-Ο κώδικας υλοποιεί την προσομοίωση της διάχυσης θερμότητας σε ένα δισδιάστατο πλέγμα χρησιμοποιώντας τη μέθοδο πεπερασμένων διαφορών. Ας δούμε βήμα προς βήμα τι κάνει κάθε μέρος του κώδικα.
+This code implements a heat diffusion simulation in a two-dimensional grid using the finite difference method. Let’s go step by step to see what each part of the code does.
 
-#### Σταθερές και Προετοιμασία
+#### Constants and Setup
 
 ```c
 #define GRID_SIZE 100
@@ -12,21 +12,22 @@
 #define ALPHA 0.01
 ```
 
-Αυτές οι μακροεντολές καθορίζουν τις σταθερές της προσομοίωσης:
-- `GRID_SIZE`: το μέγεθος του πλέγματος, 100x100 κελιά.
-- `TIMESTEPS`: ο αριθμός των χρονικών βημάτων της προσομοίωσης.
-- `DT`: το βήμα χρόνου.
-- `DX`: το βήμα χωρικής απόστασης.
-- `ALPHA`: η θερμική διαχυτικότητα του υλικού.
+These macros define the constants for the simulation:
+- `GRID_SIZE`: the size of the grid, 100x100 cells.
+- `TIMESTEPS`: the number of time steps in the simulation.
+- `DT`: the time step.
+- `DX`: the spatial step.
+- `ALPHA`: the thermal diffusivity of the material.
 
-#### Αρχικοποίηση του Πλέγματος
+#### Grid Initialization
 
 ```c
 void initialize(double grid[GRID_SIZE][GRID_SIZE]) {
     int i, j;
     for (i = 0; i < GRID_SIZE; i++) {
         for (j = 0; j < GRID_SIZE; j++) {
-            if (i >= GRID_SIZE / 2 - 24 && i < GRID_SIZE / 2 + 24 && j >= GRID_SIZE / 2 - 24 && j < GRID_SIZE / 2 + 24) {
+            if (i >= GRID_SIZE / 2 - 24 && i < GRID_SIZE / 2 + 24 && 
+                j >= GRID_SIZE / 2 - 24 && j < GRID_SIZE / 2 + 24) {
                 grid[i][j] = 100.0;
             } else {
                 grid[i][j] = 0.0;
@@ -36,11 +37,11 @@ void initialize(double grid[GRID_SIZE][GRID_SIZE]) {
 }
 ```
 
-Η συνάρτηση `initialize` γεμίζει το πλέγμα με τις αρχικές τιμές θερμοκρασίας:
-- Για τα κελιά στο κέντρο του πλέγματος, δηλαδή στο τετράγωνο 48x48 με κέντρο το (50,50), η θερμοκρασία ορίζεται στους 100 βαθμούς.
-- Όλα τα υπόλοιπα κελιά αρχικοποιούνται με θερμοκρασία 0 βαθμούς.
+The `initialize` function fills the grid with initial temperature values:
+- For the cells in the center of the grid, i.e., in the 48x48 square centered around (50, 50), the temperature is set to 100 degrees.
+- All other cells are initialized to 0 degrees.
 
-#### Ενημέρωση του Πλέγματος
+#### Updating the Grid
 
 ```c
 void update(double grid[GRID_SIZE][GRID_SIZE]) {
@@ -51,7 +52,11 @@ void update(double grid[GRID_SIZE][GRID_SIZE]) {
             if (i == 0 || i == GRID_SIZE - 1 || j == 0 || j == GRID_SIZE - 1) {
                 temp[i][j] = grid[i][j];
             } else {
-                temp[i][j] = grid[i][j] + ALPHA * DT / (DX * DX) * (grid[i+1][j] + grid[i-1][j] + grid[i][j+1] + grid[i][j-1] - 4 * grid[i][j]);
+                temp[i][j] = grid[i][j] +
+                             ALPHA * DT / (DX * DX) *
+                             (grid[i+1][j] + grid[i-1][j] +
+                              grid[i][j+1] + grid[i][j-1] -
+                              4 * grid[i][j]);
             }
         }
     }
@@ -64,13 +69,13 @@ void update(double grid[GRID_SIZE][GRID_SIZE]) {
 }
 ```
 
-Η συνάρτηση `update` ενημερώνει το πλέγμα για κάθε χρονικό βήμα:
-- Χρησιμοποιεί έναν προσωρινό πίνακα `temp` για να αποθηκεύσει τις νέες τιμές θερμοκρασίας.
-- Για τα κελιά στα όρια του πλέγματος, οι τιμές παραμένουν οι ίδιες (επιβάλλονται συνθήκες Dirichlet).
-- Για τα υπόλοιπα κελιά, εφαρμόζει την εξίσωση διάχυσης θερμότητας χρησιμοποιώντας την πεπερασμένη διαφορά. Ο νέος υπολογισμός της θερμοκρασίας είναι βασισμένος στις θερμοκρασίες των γειτονικών κελιών.
-- Μετά τον υπολογισμό, οι τιμές από τον πίνακα `temp` αντιγράφονται πίσω στον αρχικό πίνακα `grid`.
+The `update` function updates the grid at each time step:
+- It uses a temporary array `temp` to store new temperature values.
+- For cells on the boundary of the grid, the values remain the same (Dirichlet boundary conditions).
+- For the other cells, it applies the heat diffusion equation using a finite difference approach. The new temperature calculation is based on the temperatures of neighboring cells.
+- After the calculation, the values from the `temp` array are copied back into the original `grid` array.
 
-#### Εγγραφή σε Αρχείο
+#### Writing to a File
 
 ```c
 void writeToFile(double grid[GRID_SIZE][GRID_SIZE], char* filename) {
@@ -86,12 +91,12 @@ void writeToFile(double grid[GRID_SIZE][GRID_SIZE], char* filename) {
 }
 ```
 
-Η συνάρτηση `writeToFile` γράφει το πλέγμα σε ένα αρχείο κειμένου:
-- Ανοίγει το αρχείο για εγγραφή.
-- Γράφει τις θερμοκρασίες κάθε κελιού σε μορφή πίνακα. Κάθε γραμμή του αρχείου αντιστοιχεί σε μια γραμμή του πλέγματος.
-- Κλείνει το αρχείο.
+The `writeToFile` function writes the grid to a text file:
+- It opens the file for writing.
+- It prints the temperature of each cell in a grid format. Each line of the file corresponds to one row of the grid.
+- It closes the file.
 
-#### Κύρια Συνάρτηση
+#### Main Function
 
 ```c
 int main() {
@@ -112,13 +117,13 @@ int main() {
 }
 ```
 
-Η κύρια συνάρτηση `main` εκτελεί την προσομοίωση:
-- Δημιουργεί τον πίνακα `grid` για το πλέγμα θερμοκρασιών.
-- Καταγράφει τον χρόνο εκκίνησης.
-- Αρχικοποιεί το πλέγμα.
-- Εκτελεί τα χρονικά βήματα ενημέρωσης καλώντας επανειλημμένα τη συνάρτηση `update`.
-- Καταγράφει τον χρόνο λήξης και υπολογίζει τον συνολικό χρόνο εκτέλεσης.
-- Γράφει τα τελικά αποτελέσματα σε ένα αρχείο.
-- Επιστρέφει 0, υποδεικνύοντας την επιτυχή εκτέλεση του προγράμματος.
+The `main` function runs the simulation:
+- It creates the `grid` array for the temperature grid.
+- Records the start time.
+- Initializes the grid.
+- Executes the time steps by repeatedly calling the `update` function.
+- Records the end time and calculates the total execution time.
+- Writes the final results to a file.
+- Returns 0, indicating successful program execution.
 
-Αυτή είναι η πλήρης ανάλυση της υλοποίησης του σειριακού κώδικα για την προσομοίωση της διάχυσης θερμότητας. Αν έχεις άλλες ερωτήσεις ή χρειάζεσαι περαιτέρω διευκρινίσεις, είμαι εδώ για να βοηθήσω!
+This is the complete analysis of the serial code implementation for the heat diffusion simulation. If you have any other questions or need further clarifications, I’m here to help!
