@@ -1,132 +1,132 @@
-# Heat-Diffusion-Simulation (Προσομοίωση διάχυσης θερμότητας)
+# Heat-Diffusion-Simulation
 
-Αυτό το αποθετήριο περιλαμβάνει μια προσομοίωση διάχυσης θερμότητας χρησιμοποιώντας δύο διαφορετικές προσεγγίσεις: σειριακή και παράλληλη με OpenMP και MPI. Ο κώδικας εκτελείται σε επεξεργαστές πολλαπλών πυρήνων και διαδικτυακά περιβάλλοντα για ταχύτερους υπολογισμούς.
+This repository includes a heat diffusion simulation using two different approaches: a serial version and a parallel version with OpenMP and MPI. The code runs on multi-core processors and distributed environments for faster computations.
 
-## Περιγραφή του Προβλήματος
+## Problem Description
 
-Η διάχυση θερμότητας είναι μια φυσική διεργασία που περιγράφει τη μεταφορά θερμικής ενέργειας μέσω αγωγής. Η εξίσωση διάχυσης θερμότητας περιγράφει αυτή τη διαδικασία μαθηματικά:
+Heat diffusion is a physical process that describes the transfer of thermal energy through conduction. The heat diffusion equation mathematically describes this process:
 
-## Η εξίσωση διάχυσης θερμότητας: Σύνοψη
+## The Heat Diffusion Equation: Overview
 
-Η εξίσωση διάχυσης θερμότητας περιγράφει πώς η θερμοκρασία σε ένα υλικό μεταβάλλεται με την πάροδο του χρόνου. 
+The heat diffusion equation describes how temperature in a material changes over time.
 
-**Μαθηματική μορφή:**
+**Mathematical Form:**
 
 $$\frac{\partial u}{\partial t} = \alpha \nabla^2 u$$
 
-* $u(x, t)$: θερμοκρασία στο σημείο $x$ και χρόνο $t$
-* $t$: χρόνος
-* $\alpha$: συντελεστής θερμικής διάχυσης (πόσο εύκολα διαχέεται η θερμότητα)
-* $\nabla^2 u$: τελεστής Λαπλασιανού (δεύτερη παράγωγο ως προς τις χωρικές συντεταγμένες)
+* $u(x, t)$: temperature at point $x$ and time $t$
+* $t$: time
+* $\alpha$: thermal diffusivity (how easily heat diffuses)
+* $\nabla^2 u$: Laplacian operator (the second spatial derivative)
 
-Αυτή η προσομοίωση χρησιμοποιεί τη μέθοδο πεπερασμένων διαφορών για την επίλυση αυτής της εξίσωσης σε ένα 2D πλέγμα.
+This simulation uses the finite difference method to solve this equation on a 2D grid.
 
-## Αποτέλεσμα Προσομοίωσης
+## Simulation Result
 
 <img src="Serial/heatmap_serial.png" alt="heatmap">
 
-## Έναρξη
+## Getting Started
 
-1. **Προαπαιτήσεις:**
-    - Ένας μεταγλωττιστής C (π.χ., GCC, MPICC)
-    - Βιβλιοθήκη OpenMP (συνήθως συμπεριλαμβάνεται στους περισσότερους σύγχρονους μεταγλωττιστές)
-    - Βιβλιοθήκη MPI (Message Passing Interface)
+1. **Prerequisites:**
+    - A C compiler (e.g., GCC, MPICC)
+    - OpenMP library (usually included in most modern compilers)
+    - MPI (Message Passing Interface) library
 
-2. **Κλωνοποίηση του αποθετηρίου:**
+2. **Clone the repository:**
 
     ```bash
     git clone https://github.com/theodorostaloumtzis/Heat-Diffusion-Simulation.git
     ```
 
-## Μεταγλώττιση και Εκτέλεση της Προσομοίωσης Διάχυσης Θερμότητας
+## Compiling and Running the Heat Diffusion Simulation
 
-1. **Μετακίνηση στον κατάλογο του έργου:**
+1. **Navigate to the project directory:**
 
     ```bash
     cd Heat-Diffusion-Simulation
     ```
 
-2. **Μεταγλώττιση του κώδικα:**
+2. **Compile the code:**
 
-    Για τον σειριακό κώδικα:
+    For the serial code:
     ```bash
     gcc -o serial_sim serial_sim.c -lm -Wall
     ```
 
-    Για τον κώδικα με OpenMP:
+    For the OpenMP code:
     ```bash
     gcc -o parallel_sim_omp parallel_sim_omp.c -lm -fopenmp -Wall
     ```
 
-    Για τον κώδικα με MPI:
+    For the MPI code:
     ```bash
     mpicc -o parallel_sim_mpi parallel_sim_mpi.c -lm -lmpi -Wall
     ```
 
-    Για τον υβριδικό κώδικα (MPI + OpenMP):
+    For the hybrid code (MPI + OpenMP):
     ```bash
     mpicc -o parallel_sim_hybrid parallel_sim_hybrid.c -lm -fopenmp -lmpi -Wall
     ```
 
-    - **Επεξήγηση σημαιών:**
-        - `-o serial_sim`, `-o parallel_sim_omp`, κλπ: Ορίζει το όνομα του εκτελέσιμου αρχείου εξόδου.
-        - `serial_sim.c`, `parallel_sim_omp.c`, κλπ: Καθορίζει το αρχείο του πηγαίου κώδικα.
-        - `-lm`: Συνδέει τη βασική βιβλιοθήκη μαθηματικών.
-        - `-fopenmp`: Ενεργοποιεί την υποστήριξη OpenMP για παράλληλη εκτέλεση (μόνο για τον κώδικα OpenMP).
-        - `-lmpi`: Συνδέει τη βιβλιοθήκη MPI για παράλληλη εκτέλεση (μόνο για τον κώδικα MPI).
-        - `-Wall`: Ενεργοποιεί τις προειδοποιήσεις του μεταγλωττιστή (προαιρετικό, αλλά συνιστάται).
+    - **Explanation of flags:**
+        - `-o serial_sim`, `-o parallel_sim_omp`, etc.: Specifies the name of the output executable.
+        - `serial_sim.c`, `parallel_sim_omp.c`, etc.: Specifies the source file.
+        - `-lm`: Links the standard math library.
+        - `-fopenmp`: Enables OpenMP support for parallel execution (only for the OpenMP code).
+        - `-lmpi`: Links the MPI library for parallel execution (only for the MPI code).
+        - `-Wall`: Enables compiler warnings (optional, but recommended).
 
-3. **Εκτέλεση της προσομοίωσης:**
+3. **Run the simulation:**
 
-    Για τον σειριακό κώδικα:
+    For the serial code:
     ```bash
     ./serial_sim
     ```
 
-    Για τον κώδικα με OpenMP:
+    For the OpenMP code:
     ```bash
     ./parallel_sim_omp
     ```
 
-    Για τον κώδικα με MPI:
+    For the MPI code:
     ```bash
     mpirun -n <number_of_processes> ./parallel_sim_mpi
     ```
 
-    Για τον υβριδικό κώδικα (MPI + OpenMP):
+    For the hybrid code (MPI + OpenMP):
     ```bash
     mpirun -n <number_of_processes> ./parallel_sim_hybrid
     ```
 
-## Κατανόηση του Κώδικα
+## Understanding the Code
 
-Η βασική λειτουργικότητα βρίσκεται στα αρχεία `serial_sim.c`, `parallel_sim_omp.c`, `parallel_sim_mpi.c` και `parallel_sim_hybrid.c`. Ακολουθεί μια ανάλυση των βασικών βημάτων:
+The core functionality resides in the `serial_sim.c`, `parallel_sim_omp.c`, `parallel_sim_mpi.c`, and `parallel_sim_hybrid.c` files. Below is an outline of the main steps:
 
-* **Αρχικοποίηση:**
-    - Ορίζονται οι διαστάσεις του πλέγματος και τα χρονικά βήματα για την προσομοίωση.
-    - Διατίθεται μνήμη για το πλέγμα θερμοκρασίας.
-    - Το πλέγμα αρχικοποιείται με κατάλληλες τιμές θερμοκρασίας.
+* **Initialization:**
+    - The grid dimensions and the time steps for the simulation are defined.
+    - Memory is allocated for the temperature grid.
+    - The grid is initialized with appropriate temperature values.
 
-* **Παραλληλοποίηση (για τον κώδικα OpenMP και MPI):**
-    - Χρήση των οδηγιών OpenMP για τον παράλληλο υπολογισμό στον κώδικα OpenMP.
-    - Χρήση της βιβλιοθήκης MPI για τον παράλληλο υπολογισμό στον κώδικα MPI.
-    - Υβριδική χρήση και των δύο προσεγγίσεων για τον υβριδικό κώδικα.
+* **Parallelization (for OpenMP and MPI code):**
+    - OpenMP directives are used for parallel computation in the OpenMP code.
+    - The MPI library is used for parallel computation in the MPI code.
+    - Both approaches are used together for the hybrid code.
 
-* **Προσομοίωση Διάχυσης Θερμότητας:**
-    - Ο κύκλος του κύριου προγράμματος επαναλαμβάνεται για τα χρονικά βήματα.
-    - Μέσα σε κάθε χρονικό βήμα:
-        - Η συνάρτηση `update` υπολογίζει νέες τιμές θερμοκρασίας για κάθε σημείο του πλέγματος με βάση τους γείτονές του και την εξίσωση διάχυσης θερμότητας.
+* **Heat Diffusion Simulation:**
+    - The main program loop runs for the specified time steps.
+    - Within each time step:
+        - The `update` function calculates new temperature values for each grid point based on its neighbors and the heat diffusion equation.
 
-* **Ολοκλήρωση:**
-    - Απελευθερώνεται η μνήμη που έχει διατεθεί για το πλέγμα.
+* **Completion:**
+    - The memory allocated for the grid is freed.
 
-## Οδηγίες Δοκιμών και Αποτελεσμάτων
+## Testing and Results
 
-* Μετά την εκτέλεση της προσομοίωσης, τα αποτελέσματα θα αποθηκευτούν σε ένα αρχείο `heatmap.txt`.
-* Μπορείτε να χρησιμοποιήσετε ένα εργαλείο οπτικοποίησης (π.χ., Gnuplot, Matplotlib) για να δημιουργήσετε γραφήματα από τα δεδομένα και να δείτε την εξέλιξη της θερμοκρασίας στο πλέγμα κατά τη διάρκεια της προσομοίωσης.
+* After running the simulation, the results will be stored in a `heatmap.txt` file.
+* You can use any visualization tool (e.g., Gnuplot, Matplotlib) to plot the data and observe how the temperature distribution in the grid evolves over time.
 
-Αυτό το αποθετήριο προσφέρει έναν πλήρη κώδικα για την προσομοίωση διάχυσης θερμότητας σε διαφορετικά περιβάλλοντα εκτέλεσης, επιτρέποντας την εξέταση και την αξιολόγηση της απόδοσης σειριακών, παράλληλων και υβριδικών υλοποιήσεων.
+This repository provides a complete codebase for heat diffusion simulation in different execution environments, enabling the examination and evaluation of serial, parallel, and hybrid implementations’ performance.
 
-## Συγγραφέας
+## Author
 
 Theodoros Taloumtzis ([https://github.com/theodorostaloumtzis](https://github.com/theodorostaloumtzis))
