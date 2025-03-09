@@ -1,4 +1,4 @@
-### Hybrid Parallel Heat Diffusion Simulation Using MPI and OpenMP
+## Hybrid Parallel Heat Diffusion Simulation Using MPI and OpenMP
 
 This project implements a hybrid parallel heat diffusion simulation using MPI (Message Passing Interface) and OpenMP (Open Multi-Processing). Below is an explanation of how the code works and its main features.
 
