@@ -1,8 +1,8 @@
-### Προσομοίωση Διάχυσης Θερμότητας Χρησιμοποιώντας Μόνο MPI
+## Heat Diffusion Simulation Using Only MPI
 
-Αυτό το έργο υλοποιεί μια προσομοίωση διάχυσης θερμότητας χρησιμοποιώντας μόνο MPI (Message Passing Interface). Παρακάτω εξηγείται ο κώδικας και τα κύρια χαρακτηριστικά του.
+This project implements a heat diffusion simulation using only MPI (Message Passing Interface). Below is an explanation of the code and its main features.
 
-#### Σταθερές και Προετοιμασία
+#### Constants and Setup
 
 ```c
 #include <stdio.h>
@@ -18,9 +18,9 @@
 #define ALPHA 0.01
 ```
 
-Οι σταθερές και οι βιβλιοθήκες που περιλαμβάνονται ορίζονται εδώ. Χρησιμοποιούμε το `mpi.h` για τις λειτουργίες του MPI ώστε να παραλληλοποιήσουμε την προσομοίωση.
+Here, the constants and the included libraries are defined. We use `mpi.h` to parallelize the simulation with MPI functions.
 
-#### Αρχικοποίηση του Πλέγματος
+#### Grid Initialization
 
 ```c
 // Initialize the grid
@@ -36,19 +36,20 @@ void initialize(double *grid, int rank, int chunk_size, int remainder, int size)
     for (i = 0; i < chunk_size; i++) {
         for (j = 0; j < GRID_SIZE; j++) {
             int global_i = start_row + i;
-            if (global_i >= GRID_SIZE / 2 - 24 && global_i < GRID_SIZE / 2 + 24 && j >= GRID_SIZE / 2 - 24 && j < GRID_SIZE / 2 + 24) {
+            if (global_i >= GRID_SIZE / 2 - 24 && global_i < GRID_SIZE / 2 + 24 &&
+                j >= GRID_SIZE / 2 - 24 && j < GRID_SIZE / 2 + 24) {
                 grid[(i + 1) * GRID_SIZE + j] = 100.0; // i+1 to account for the extra row at the beginning
             } else {
-                grid[(i + 1) * GRID_SIZE + j] = 0.0; // i+1 to account for the extra row at the beginning
+                grid[(i + 1) * GRID_SIZE + j] = 0.0;   // i+1 to account for the extra row at the beginning
             }
         }
     }
 }
 ```
 
-Η συνάρτηση `initialize` αρχικοποιεί το πλέγμα. Το πλέγμα διαιρείται μεταξύ των διεργασιών, με κάθε διεργασία να είναι υπεύθυνη για την αρχικοποίηση ενός τμήματος. Η συνθήκη `if` διασφαλίζει ότι η πηγή θερμότητας τοποθετείται σωστά στο κέντρο του πλέγματος.
+The `initialize` function initializes the grid. The grid is divided among processes, and each process is responsible for initializing its own portion. The `if` statement ensures that the heat source is correctly placed at the center of the grid.
 
-#### Ενημέρωση του Πλέγματος
+#### Updating the Grid
 
 ```c
 // Update the grid
@@ -61,15 +62,17 @@ void update(double *grid, double *temp, int chunk_size) {
             double down = grid[(i+1) * GRID_SIZE + j];
             double left = grid[i * GRID_SIZE + j-1];
             double right = grid[i * GRID_SIZE + j+1];
-            temp[i * GRID_SIZE + j] = grid[i * GRID_SIZE + j] + ALPHA * DT / (DX * DX) * (up + down + left + right - 4 * grid[i * GRID_SIZE + j]);
+            temp[i * GRID_SIZE + j] =
+                grid[i * GRID_SIZE + j] +
+                ALPHA * DT / (DX * DX) * (up + down + left + right - 4 * grid[i * GRID_SIZE + j]);
         }
     }
 }
 ```
 
-Η συνάρτηση `update` υπολογίζει τη νέα κατάσταση του πλέγματος χρησιμοποιώντας τη μέθοδο πεπερασμένων διαφορών. Οι συνθήκες ορίων διαχειρίζονται για να διασφαλιστεί η σταθερότητα και η ορθότητα.
+The `update` function computes the new state of the grid using the finite difference method. Boundary conditions are handled in such a way as to ensure stability and correctness.
 
-#### Εγγραφή Αποτελεσμάτων σε Αρχείο
+#### Writing Results to a File
 
 ```c
 // Function to write the results to a file
@@ -86,9 +89,9 @@ void writeToFile(double *grid, char *filename) {
 }
 ```
 
-Η συνάρτηση `writeToFile` γράφει την τελική κατάσταση του πλέγματος σε ένα αρχείο για ανάλυση και οπτικοποίηση.
+The `writeToFile` function writes the final state of the grid to a file for analysis and visualization.
 
-#### Κύρια Συνάρτηση
+#### Main Function
 
 ```c
 int main(int argc, char *argv[]) {
@@ -153,11 +156,21 @@ int main(int argc, char *argv[]) {
         full_grid = (double *)malloc(GRID_SIZE * GRID_SIZE * sizeof(double));
     }
 
-    MPI_Gather(grid + GRID_SIZE, chunk_size * GRID_SIZE, MPI_DOUBLE, full_grid, chunk_size * GRID_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(
+        grid + GRID_SIZE,           // Send buffer
+        chunk_size * GRID_SIZE,     // Number of elements to send
+        MPI_DOUBLE,                 // Data type
+        full_grid,                  // Receive buffer
+        chunk_size * GRID_SIZE,     // Number of elements each process sends
+        MPI_DOUBLE,                 // Data type
+        0,                          // Root process
+        MPI_COMM_WORLD
+    );
 
     if (rank == 0) {
         clock_gettime(CLOCK_MONOTONIC, &end);
-        double elapsed_time = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
+        double elapsed_time = (end.tv_sec - start.tv_sec) +
+                             ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
         printf("Time taken: %fs\n", elapsed_time);
         writeToFile(full_grid, "heatmap_parallel_mpi.txt");
         free(full_grid);
@@ -170,25 +183,25 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-### Επεξηγήσεις
+### Explanation
 
-1. **Προετοιμασία και Αρχικοποίηση:**
-    - Οι σταθερές που καθορίζουν το μέγεθος του πλέγματος, τα χρονικά βήματα, το χρονικό διάστημα και την παράμετρο διάχυσης ορίζονται στην αρχή.
-    - Οι διεργασίες MPI αρχικοποιούνται με `MPI_Init`, και η λειτουργία καθορίζεται με `MPI_Comm_rank` και `MPI_Comm_size`.
-    - Το πλέγμα χωρίζεται σε κομμάτια, με κάθε διεργασία να αναλαμβάνει την αρχικοποίηση του δικού της κομματιού με τη συνάρτηση `initialize`.
+1. **Setup and Initialization:**
+   - The constants defining the grid size, the number of time steps, the time interval, and the diffusion parameter are declared at the start.
+   - The MPI processes are initialized with `MPI_Init`, and their roles are determined via `MPI_Comm_rank` and `MPI_Comm_size`.
+   - The grid is divided into chunks, and each process is responsible for initializing its own chunk using the `initialize` function.
 
-2. **Ενημέρωση του Πλέγματος:**
-    - Η συνάρτηση `update` υπολογίζει τη νέα κατάσταση του πλέγματος χρησιμοποιώντας την εξίσωση διάχυσης θερμότητας.
-    - Οι τιμές των κυττάρων ενημερώνονται παράλληλα από τις διεργασίες, με κάθε διεργασία να υπολογίζει το δικό της κομμάτι.
+2. **Updating the Grid:**
+   - The `update` function calculates the new state of the grid using the heat diffusion equation.
+   - Each process computes its portion of the grid in parallel.
 
-3. **Επικοινωνία μεταξύ Διεργασιών:**
-    - Η επικοινωνία μεταξύ των διεργασιών γίνεται με τη χρήση μη-αποκλειστικών αποστολών και λήψεων (`MPI_Irecv`, `MPI_Isend`), ώστε να διασφαλιστεί η ανταλλαγή των τιμών των οριακών γραμμών (halo rows).
+3. **Communication Between Processes:**
+   - The processes communicate with each other using non-blocking sends and receives (`MPI_Irecv`, `MPI_Isend`) to exchange boundary (halo) rows.
 
-4. **Συλλογή και Αποθήκευση Αποτελεσμάτων:**
-    - Οι τιμές του πλέγματος από όλες τις διεργασίες συλλέγονται στη διεργασία 0 με τη χρήση της `MPI_Gather`.
-    - Η διεργασία 0 αποθηκεύει τα αποτελέσματα σε ένα αρχείο και εκτυπώνει το συνολικό χρόνο εκτέλεσης της προσομοίωσης.
+4. **Collecting and Saving Results:**
+   - The grid values from all processes are gathered at process 0 using `MPI_Gather`.
+   - Process 0 stores the results in a file and prints out the total execution time of the simulation.
 
-5. **Κατανομή Μνήμης:**
-    - Η μνήμη για τα πλέγματα καταχωρείται δυναμικά χρησιμοποιώντας `malloc` και απελευθερώνεται στο τέλος του προγράμματος.
+5. **Memory Allocation:**
+   - Memory for the grids is dynamically allocated using `malloc` and freed at the end of the program.
 
-Με αυτόν τον τρόπο, η προσομοίωση διάχυσης θερμότητας παραλληλοποιείται με τη χρήση της βιβλιοθήκης MPI, εκμεταλλευόμενη τις δυνατότητες παράλληλης επεξεργασίας των σύγχρονων υπολογιστικών συστημάτων.
+In this way, the heat diffusion simulation is parallelized using the MPI library, leveraging the parallel processing capabilities of modern computing systems.
